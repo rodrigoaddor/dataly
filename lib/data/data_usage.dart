@@ -48,13 +48,19 @@ class DataUsage with ChangeNotifier {
   DataUsage({DataAmount usage, DataAmount limit, DateTime reset})
       : _usage = usage,
         _limit = limit,
-        _reset = reset;
+        _reset = reset {
+    SharedPreferences.getInstance().then((prefs) {
+      save('usage', _usage.bytes);
+      save('limit', _limit.bytes);
+      save('reset', _reset.millisecondsSinceEpoch);
+    });
+  }
 
   factory DataUsage.fromGenerics(int usage, int limit, int reset) {
     return DataUsage(
-      usage: DataAmount.fromBytes(usage ?? 0),
-      limit: DataAmount.fromBytes(limit ?? 0),
-      reset: reset != null ? DateTime.fromMillisecondsSinceEpoch(reset) : DateTime.now(),
+      usage: usage != null ? DataAmount.fromBytes(usage) : null,
+      limit: limit != null ? DataAmount.fromBytes(limit) : null,
+      reset: reset != null ? DateTime.fromMillisecondsSinceEpoch(reset) : null,
     );
   }
 
@@ -65,6 +71,8 @@ class DataUsage with ChangeNotifier {
       prefs.getInt('reset'),
     );
   }
+
+  bool get hasData => usage != null && limit != null && reset != null;
 
   DataAmount get usage => _usage;
   set usage(DataAmount newUsage) {
@@ -88,14 +96,14 @@ class DataUsage with ChangeNotifier {
     notifyListeners();
     save('reset', _reset.millisecondsSinceEpoch);
   }
-  
+
   DateTime get start => DateTime(reset.year, reset.month - 1, reset.day);
 
   double get datePercent {
     print(DateTime.now().millisecondsSinceEpoch - this.start.millisecondsSinceEpoch);
 
     return (DateTime.now().millisecondsSinceEpoch - this.start.millisecondsSinceEpoch) /
-      (this.reset.millisecondsSinceEpoch - this.start.millisecondsSinceEpoch);
+        (this.reset.millisecondsSinceEpoch - this.start.millisecondsSinceEpoch);
   }
 
   void save(String key, num value) async {

@@ -1,6 +1,6 @@
 name: dataly
-description: A new Flutter project.
-version: 1.0.0+1
+description: Helping you manage your data usage in relation with your mobile plan reset date.
+version: 1.0.1+2
 
 environment:
   sdk: ">=2.1.0 <3.0.0"

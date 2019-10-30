@@ -32,10 +32,6 @@ class HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final dataUsage = Provider.of<DataUsage>(context);
 
-    print(dataUsage.reset.toIso8601String());
-    print(dataUsage.start.toIso8601String());
-    print(DateTime.now().toIso8601String());
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dataly'),
@@ -55,26 +51,28 @@ class HomePageState extends State<HomePage> {
           onPressed: this.sendRequest,
         ),
       ),
-      body: Stack(
-        alignment: Alignment.center,
-        fit: StackFit.expand,
-        children: [
-          CircularPercentIndicator(
-            percent: dataUsage.percent,
-            radius: 256,
-            lineWidth: 16,
-            animation: true,
-            animationDuration: 300,
-            animateFromLastPercent: true,
-            center: Text('${dataUsage.usage} of ${dataUsage.limit}'),
-          ),
-          CircularPercentIndicator(
-            percent: dataUsage.datePercent,
-            radius: 220,
-            lineWidth: 14,
-          ),
-        ],
-      ),
+      body: !dataUsage.hasData
+          ? Text('No data found')
+          : Stack(
+              alignment: Alignment.center,
+              fit: StackFit.expand,
+              children: [
+                CircularPercentIndicator(
+                  percent: dataUsage.percent,
+                  radius: 256,
+                  lineWidth: 16,
+                  animation: true,
+                  animationDuration: 300,
+                  animateFromLastPercent: true,
+                  center: Text('${dataUsage.usage} of ${dataUsage.limit}'),
+                ),
+                CircularPercentIndicator(
+                  percent: dataUsage.datePercent,
+                  radius: 220,
+                  lineWidth: 14,
+                ),
+              ],
+            ),
     );
   }
 }
