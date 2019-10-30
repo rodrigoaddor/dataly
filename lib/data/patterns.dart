@@ -1,0 +1,1 @@
+final RegExp tim = RegExp(r'[^\d,]+([\d,]+)(GB|MB)[^\d,]+([\d,]+)(GB|MB)[^\d/]+((?:\d{1,4}\/?)+)');
