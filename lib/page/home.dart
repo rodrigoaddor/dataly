@@ -1,8 +1,8 @@
-import 'package:dataly/main.dart';
-import 'package:dataly/widget/input_dialog.dart';
 import 'package:flutter/material.dart';
 
-import 'package:dataly/data/data_usage.dart';
+import 'package:dataly/data/app_state.dart';
+import 'package:dataly/data/message_handler.dart';
+import 'package:dataly/widget/input_dialog.dart';
 
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
@@ -30,7 +30,7 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final dataUsage = Provider.of<DataUsage>(context);
+    final appState = Provider.of<AppState>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,29 +45,34 @@ class HomePageState extends State<HomePage> {
             ),
           );
 
-          if (result != null && result.length > 0) handleMessage(result);
+          if (result != null && result.length > 0) {
+            try {
+              // TODO: Get carrier from user prefs
+              appState.data = MessageHandler(carrier: Carrier.TIM).handle(result);
+            } on FormatException catch (_) {}
+          }
         },
         child: FloatingActionButton(
           onPressed: this.sendRequest,
         ),
       ),
-      body: !dataUsage.hasData
+      body: !appState.hasDataUsage
           ? Text('No data found')
           : Stack(
               alignment: Alignment.center,
               fit: StackFit.expand,
               children: [
                 CircularPercentIndicator(
-                  percent: dataUsage.percent,
+                  percent: appState.data.percent,
                   radius: 256,
                   lineWidth: 16,
                   animation: true,
                   animationDuration: 300,
                   animateFromLastPercent: true,
-                  center: Text('${dataUsage.usage} of ${dataUsage.limit}'),
+                  center: Text('${appState.data.usage} of ${appState.data.limit}'),
                 ),
                 CircularPercentIndicator(
-                  percent: dataUsage.datePercent,
+                  percent: appState.data.datePercent,
                   radius: 220,
                   lineWidth: 14,
                 ),

@@ -1,9 +1,5 @@
 import 'dart:math' as Math;
 
-import 'package:flutter/foundation.dart';
-
-import 'package:shared_preferences/shared_preferences.dart';
-
 enum DataUnit { B, KB, MB, GB, TB }
 
 class DataAmount {
@@ -40,78 +36,36 @@ class DataAmount {
   }
 }
 
-class DataUsage with ChangeNotifier {
-  DataAmount _usage;
-  DataAmount _limit;
-  DateTime _reset;
+class DataUsage {
+  final DataAmount usage;
+  final DataAmount limit;
+  final DateTime reset;
 
-  DataUsage({DataAmount usage, DataAmount limit, DateTime reset})
-      : _usage = usage,
-        _limit = limit,
-        _reset = reset {
-    SharedPreferences.getInstance().then((prefs) {
-      save('usage', _usage.bytes);
-      save('limit', _limit.bytes);
-      save('reset', _reset.millisecondsSinceEpoch);
-    });
-  }
+  const DataUsage({this.usage, this.limit, this.reset});
 
-  factory DataUsage.fromGenerics(int usage, int limit, int reset) {
+  factory DataUsage.fromJSON(Map<String, dynamic> json) {
     return DataUsage(
-      usage: usage != null ? DataAmount.fromBytes(usage) : null,
-      limit: limit != null ? DataAmount.fromBytes(limit) : null,
-      reset: reset != null ? DateTime.fromMillisecondsSinceEpoch(reset) : null,
+      usage: DataAmount.fromBytes(json['usage']),
+      limit: DataAmount.fromBytes(json['limit']),
+      reset: DateTime.fromMillisecondsSinceEpoch(json['reset']),
     );
   }
 
-  factory DataUsage.fromSharedPrefs(SharedPreferences prefs) {
-    return DataUsage.fromGenerics(
-      prefs.getInt('usage'),
-      prefs.getInt('limit'),
-      prefs.getInt('reset'),
-    );
+  Map<String, dynamic> toJSON() {
+    return {
+      'usage': usage.bytes,
+      'limit': limit.bytes,
+      'reset': reset.millisecondsSinceEpoch,
+    };
   }
 
   bool get hasData => usage != null && limit != null && reset != null;
 
-  DataAmount get usage => _usage;
-  set usage(DataAmount newUsage) {
-    _usage = newUsage;
-    notifyListeners();
-    save('usage', _usage.bytes);
-  }
-
-  DataAmount get limit => _limit;
-  set limit(DataAmount newLimit) {
-    _limit = newLimit;
-    notifyListeners();
-    save('limit', _limit.bytes);
-  }
-
   double get percent => usage.bytes != 0 && limit.bytes != 0 ? usage.bytes / limit.bytes : 0;
-
-  DateTime get reset => _reset;
-  set reset(DateTime newReset) {
-    _reset = newReset;
-    notifyListeners();
-    save('reset', _reset.millisecondsSinceEpoch);
-  }
 
   DateTime get start => DateTime(reset.year, reset.month - 1, reset.day);
 
-  double get datePercent {
-    print(DateTime.now().millisecondsSinceEpoch - this.start.millisecondsSinceEpoch);
-
-    return (DateTime.now().millisecondsSinceEpoch - this.start.millisecondsSinceEpoch) /
-        (this.reset.millisecondsSinceEpoch - this.start.millisecondsSinceEpoch);
-  }
-
-  void save(String key, num value) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (num is int) {
-      prefs.setInt(key, value);
-    } else if (num is double) {
-      prefs.setDouble(key, value);
-    }
-  }
+  double get datePercent =>
+      (DateTime.now().millisecondsSinceEpoch - this.start.millisecondsSinceEpoch) /
+      (this.reset.millisecondsSinceEpoch - this.start.millisecondsSinceEpoch);
 }
