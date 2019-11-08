@@ -1,6 +1,6 @@
 import 'package:dataly/data/data_usage.dart';
 
-enum Carrier { TIM }
+enum Carrier { TIM, Vivo, Oi }
 
 final Map<Carrier, RegExp> parsers = {
   Carrier.TIM: RegExp(

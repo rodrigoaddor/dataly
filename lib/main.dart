@@ -24,8 +24,7 @@ void main() async {
   SmsReceiver().onSmsReceived.listen((message) {
     if (message.sender == '4141') {
       try {
-        // TODO: Get carrier from user prefs
-        appState.data = MessageHandler(carrier: Carrier.TIM).handle(message.body);
+        appState.data = MessageHandler(carrier: appState.carrier).handle(message.body);
       } on FormatException catch (_) {}
     }
   });
@@ -39,6 +38,7 @@ class DatalyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Dataly',
       home: HomePage(),
+      theme: ThemeData.light(),
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:dataly/widget/app_drawer.dart';
 import 'package:dataly/data/app_state.dart';
 import 'package:dataly/data/message_handler.dart';
 import 'package:dataly/widget/input_dialog.dart';
@@ -7,25 +8,38 @@ import 'package:dataly/widget/input_dialog.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:sms_maintained/sms.dart';
+import 'package:vibration/vibration.dart';
 
 class HomePage extends StatefulWidget {
   @override
   HomePageState createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
   SmsSender smsSender;
-  SmsReceiver smsReceiver;
+  Animation<double> rotation;
+  AnimationController rotationController;
 
   @override
   void initState() {
     super.initState();
     smsSender = SmsSender();
-    smsReceiver = SmsReceiver();
+
+    rotationController = AnimationController(duration: const Duration(seconds: 1), vsync: this);
+    rotation = rotationController.drive(CurveTween(curve: Curves.easeInOutBack));
+  }
+
+  @override
+  void dispose() {
+    rotationController.dispose();
+    super.dispose();
   }
 
   void sendRequest() {
-    smsSender.sendSms(SmsMessage('4141', 'consumoweb'));
+    //smsSender.sendSms(SmsMessage('4141', 'consumoweb'));
+    Vibration.vibrate(duration: 150);
+
+    rotationController.forward(from: 0);
   }
 
   @override
@@ -36,6 +50,7 @@ class HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('Dataly'),
       ),
+      drawer: AppDrawer(),
       floatingActionButton: InkWell(
         onLongPress: () async {
           final result = await showDialog<String>(
@@ -47,12 +62,15 @@ class HomePageState extends State<HomePage> {
 
           if (result != null && result.length > 0) {
             try {
-              // TODO: Get carrier from user prefs
-              appState.data = MessageHandler(carrier: Carrier.TIM).handle(result);
+              appState.data = MessageHandler(carrier: appState.carrier).handle(result);
             } on FormatException catch (_) {}
           }
         },
         child: FloatingActionButton(
+          child: RotationTransition(
+            child: Icon(Icons.refresh, size: 36,),
+            turns: rotation,
+          ),
           onPressed: this.sendRequest,
         ),
       ),
