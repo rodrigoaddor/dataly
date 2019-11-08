@@ -1,22 +1,13 @@
+import 'package:dataly/data/carrier.dart';
 import 'package:dataly/data/data_usage.dart';
-
-enum Carrier { TIM, Vivo, Oi }
-
-final Map<Carrier, RegExp> parsers = {
-  Carrier.TIM: RegExp(
-    r'[^\d,]+(?<usage>[\d,]+)(?<usageUnit>GB|MB)[^\d,]+(?<limit>[\d,]+)(?<limitUnit>GB|MB)[^\d/]+(?<date>(?:\d{1,4}\/?)+)',
-  )
-};
 
 class MessageHandler {
   final Carrier carrier;
 
   MessageHandler({this.carrier});
 
-  RegExp get parser => parsers[this.carrier];
-
   DataUsage handle(String message) {
-    final match = parser.firstMatch(message);
+    final match = carrier.regex.firstMatch(message);
     if (match == null) throw FormatException('Message has no match.');
 
     final List<int> date = match.namedGroup('date').split('/').map((i) => int.parse(i)).toList(growable: false);

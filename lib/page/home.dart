@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
-import 'package:dataly/widget/app_drawer.dart';
 import 'package:dataly/data/app_state.dart';
 import 'package:dataly/data/message_handler.dart';
+import 'package:dataly/widget/app_drawer.dart';
 import 'package:dataly/widget/input_dialog.dart';
 
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
 import 'package:sms_maintained/sms.dart';
-import 'package:vibration/vibration.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -35,9 +34,8 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
     super.dispose();
   }
 
-  void sendRequest() {
-    smsSender.sendSms(SmsMessage('4141', 'consumoweb'));
-    Vibration.vibrate(duration: 150);
+  void sendRequest(BuildContext context) {
+    smsSender.sendSms(Provider.of<AppState>(context).carrier.smsMessage);
 
     rotationController.forward(from: 0);
   }
@@ -71,7 +69,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
             child: Icon(Icons.refresh, size: 36,),
             turns: rotation,
           ),
-          onPressed: this.sendRequest,
+          onPressed: () => this.sendRequest(context),
         ),
       ),
       body: !appState.hasDataUsage

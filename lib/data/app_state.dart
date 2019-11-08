@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
-import 'package:dataly/data/message_handler.dart';
+import 'package:dataly/data/carrier.dart';
 import 'package:dataly/data/data_usage.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,7 +21,7 @@ class AppState with ChangeNotifier {
     return AppState(
       data: prefs.containsKey('data') ? DataUsage.fromJSON(jsonDecode(prefs.getString('data'))) : null,
       carrier: prefs.containsKey('carrier')
-          ? Carrier.values.firstWhere((carrier) => carrier.toString().split('.')[1] == prefs.getString('carrier'))
+          ? Carriers.firstWhere((carrier) => carrier.name == prefs.getString('carrier'))
           : null,
     );
   }
@@ -34,11 +34,12 @@ class AppState with ChangeNotifier {
     getPrefs().then((prefs) => prefs.setString('data', jsonEncode(this._data.toJSON())));
   }
 
-  String get carrierName => this._carrier.toString().split('.')[1];
   Carrier get carrier => this._carrier;
   set carrier(Carrier newCarrier) {
     this._carrier = newCarrier;
     notifyListeners();
-    getPrefs().then((prefs) => prefs.setString('carrier', this.carrierName));
+    getPrefs().then((prefs) {
+      return prefs.setString('carrier', this._carrier.name);
+    });
   }
 }
