@@ -1,9 +1,9 @@
 name: dataly
 description: Helping you manage your data usage in relation with your mobile plan reset date.
-version: 1.0.4+4
+version: 1.0.5+5
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.2.2 <3.0.0"
 
 dependencies:
   flutter:

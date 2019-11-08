@@ -36,7 +36,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
   }
 
   void sendRequest() {
-    //smsSender.sendSms(SmsMessage('4141', 'consumoweb'));
+    smsSender.sendSms(SmsMessage('4141', 'consumoweb'));
     Vibration.vibrate(duration: 150);
 
     rotationController.forward(from: 0);

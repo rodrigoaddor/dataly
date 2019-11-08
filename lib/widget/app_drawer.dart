@@ -19,7 +19,7 @@ class _AppDrawerState extends State<AppDrawer> {
           children: [
             DrawerHeader(
               child: Column(
-                children: [Text(appState.carrierName)],
+                children: [if(appState.carrier != null) Text(appState.carrierName)],
               ),
             ),
             ListTile(
