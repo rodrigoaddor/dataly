@@ -1,9 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'package:dataly/data/app_state.dart';
-import 'package:dataly/data/message_handler.dart';
 import 'package:dataly/widget/app_drawer.dart';
-import 'package:dataly/widget/input_dialog.dart';
 
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
@@ -23,21 +23,26 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
   void initState() {
     super.initState();
     smsSender = SmsSender();
-
-    rotationController = AnimationController(duration: const Duration(seconds: 1), vsync: this);
-    rotation = rotationController.drive(CurveTween(curve: Curves.easeInOutBack));
   }
 
-  @override
-  void dispose() {
-    rotationController.dispose();
-    super.dispose();
-  }
+  Future<void> sendRequest(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+    if (appState.updating != null && !appState.updating.isCompleted) appState.updating.completeError('Cancelled');
 
-  void sendRequest(BuildContext context) {
-    smsSender.sendSms(Provider.of<AppState>(context).carrier.smsMessage);
-
-    rotationController.forward(from: 0);
+    return smsSender.sendSms(appState.carrier.smsMessage)
+      ..then((_) {
+        final controller = Scaffold.of(context).showSnackBar(SnackBar(
+          content: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Waiting for response'),
+              SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 3)),
+            ],
+          ),
+          duration: Duration(hours: 1),
+        ));
+        (appState.updating = Completer()).future.whenComplete(() => controller.close());
+      });
   }
 
   @override
@@ -49,51 +54,41 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
         title: const Text('Dataly'),
       ),
       drawer: AppDrawer(),
-      floatingActionButton: InkWell(
-        onLongPress: () async {
-          final result = await showDialog<String>(
-            context: context,
-            builder: (context) => InputDialog(
-              title: 'Handle Message',
-            ),
-          );
-
-          if (result != null && result.length > 0) {
-            try {
-              appState.data = MessageHandler(carrier: appState.carrier).handle(result);
-            } on FormatException catch (_) {}
-          }
-        },
-        child: FloatingActionButton(
-          child: RotationTransition(
-            child: Icon(Icons.refresh, size: 36,),
-            turns: rotation,
-          ),
-          onPressed: () => this.sendRequest(context),
-        ),
-      ),
-      body: !appState.hasDataUsage
-          ? Text('No data found')
-          : Stack(
-              alignment: Alignment.center,
-              fit: StackFit.expand,
+      body: Builder(
+        builder: (context) {
+          return RefreshIndicator(
+            onRefresh: () => this.sendRequest(context),
+            child: PageView(
+              physics: AlwaysScrollableScrollPhysics(),
+              scrollDirection: Axis.vertical,
               children: [
-                CircularPercentIndicator(
-                  percent: appState.data.percent,
-                  radius: 256,
-                  lineWidth: 16,
-                  animation: true,
-                  animationDuration: 300,
-                  animateFromLastPercent: true,
-                  center: Text('${appState.data.usage} of ${appState.data.limit}'),
-                ),
-                CircularPercentIndicator(
-                  percent: appState.data.datePercent,
-                  radius: 220,
-                  lineWidth: 14,
-                ),
+                !appState.hasDataUsage
+                    ? Text('No data found')
+                    : Stack(
+                        alignment: Alignment.center,
+                        fit: StackFit.expand,
+                        children: [
+                          CircularPercentIndicator(
+                            percent: appState.data.percent,
+                            radius: 256,
+                            lineWidth: 16,
+                            animation: true,
+                            animationDuration: 300,
+                            animateFromLastPercent: true,
+                            center: Text('${appState.data.usage} of ${appState.data.limit}'),
+                          ),
+                          CircularPercentIndicator(
+                            percent: appState.data.datePercent,
+                            radius: 220,
+                            lineWidth: 14,
+                          ),
+                        ],
+                      ),
               ],
             ),
+          );
+        },
+      ),
     );
   }
 }

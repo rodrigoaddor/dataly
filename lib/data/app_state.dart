@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,7 @@ Future<SharedPreferences> getPrefs() => SharedPreferences.getInstance();
 class AppState with ChangeNotifier {
   DataUsage _data;
   Carrier _carrier;
+  Completer updating;
 
   AppState({DataUsage data, Carrier carrier})
       : this._data = data,
