@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import 'package:dataly/widget/loading_sheet.dart';
 import 'package:dataly/data/app_state.dart';
 import 'package:dataly/widget/app_drawer.dart';
 
@@ -14,34 +15,59 @@ class HomePage extends StatefulWidget {
   HomePageState createState() => HomePageState();
 }
 
-class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   SmsSender smsSender;
   Animation<double> rotation;
   AnimationController rotationController;
+  bool hasFloatingButton = true;
 
   @override
   void initState() {
     super.initState();
     smsSender = SmsSender();
+
+    rotationController = AnimationController(
+      duration: const Duration(seconds: 1),
+      vsync: this,
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed && hasFloatingButton) rotationController.forward(from: 0);
+      });
+    rotation = rotationController.drive(CurveTween(curve: Curves.easeInOutBack));
+  }
+
+  @override
+  void dispose() {
+    rotationController.dispose();
+    super.dispose();
   }
 
   Future<void> sendRequest(BuildContext context) {
     final appState = Provider.of<AppState>(context);
-    if (appState.updating != null && !appState.updating.isCompleted) appState.updating.completeError('Cancelled');
+    if (appState.updating != null && !appState.updating.isCompleted) appState.updating.complete(UpdateStatus.CANCELLED);
 
-    return smsSender.sendSms(appState.carrier.smsMessage)
-      ..then((_) {
-        final controller = Scaffold.of(context).showSnackBar(SnackBar(
-          content: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Waiting for response'),
-              SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 3)),
-            ],
+    return Future.wait([
+      smsSender.sendSms(appState.carrier.smsMessage),
+      Future.delayed(Duration(milliseconds: 200)),
+    ])
+      ..then((_) async {
+        PersistentBottomSheetController controller;
+        (appState.updating = Completer()).future.whenComplete(() async {
+          if (controller != null) controller.close();
+        });
+        await Future.delayed(Duration(milliseconds: 600));
+
+        controller = Scaffold.of(context).showBottomSheet(
+          (context) => BottomSheet(
+            onClosing: () {},
+            builder: (context) => LoadingSheet(
+              title: const Text('Waiting for SMS response...'),
+              onHide: () {
+                controller.close();
+                appState.updating.complete(UpdateStatus.CANCELLED_BY_USER);
+              },
+            ),
           ),
-          duration: Duration(hours: 1),
-        ));
-        (appState.updating = Completer()).future.whenComplete(() => controller.close());
+        );
       });
   }
 
@@ -54,39 +80,59 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin 
         title: const Text('Dataly'),
       ),
       drawer: AppDrawer(),
+      floatingActionButton: FutureBuilder<UpdateStatus>(
+          future: appState.updating != null ? appState.updating.future : Future.value(),
+          builder: (context, snapshot) {
+            hasFloatingButton = snapshot.connectionState == ConnectionState.done;
+            return AnimatedSwitcher(
+              duration: Duration(milliseconds: 600),
+              switchInCurve: Curves.easeOutBack,
+              switchOutCurve: Curves.easeOutBack,
+              transitionBuilder: (child, animation) => ScaleTransition(
+                child: child,
+                scale: animation,
+              ),
+              child: hasFloatingButton
+                  ? FloatingActionButton(
+                      child: RotationTransition(
+                        turns: rotation,
+                        child: Icon(
+                          Icons.refresh,
+                          size: 40,
+                        ),
+                      ),
+                      onPressed: () {
+                        rotationController.forward(from: 0);
+                        this.sendRequest(context);
+                      },
+                    )
+                  : SizedBox(),
+            );
+          }),
       body: Builder(
         builder: (context) {
-          return RefreshIndicator(
-            onRefresh: () => this.sendRequest(context),
-            child: PageView(
-              physics: AlwaysScrollableScrollPhysics(),
-              scrollDirection: Axis.vertical,
-              children: [
-                !appState.hasDataUsage
-                    ? Text('No data found')
-                    : Stack(
-                        alignment: Alignment.center,
-                        fit: StackFit.expand,
-                        children: [
-                          CircularPercentIndicator(
-                            percent: appState.data.percent,
-                            radius: 256,
-                            lineWidth: 16,
-                            animation: true,
-                            animationDuration: 300,
-                            animateFromLastPercent: true,
-                            center: Text('${appState.data.usage} of ${appState.data.limit}'),
-                          ),
-                          CircularPercentIndicator(
-                            percent: appState.data.datePercent,
-                            radius: 220,
-                            lineWidth: 14,
-                          ),
-                        ],
-                      ),
-              ],
-            ),
-          );
+          return !appState.hasDataUsage
+              ? Text('No data found')
+              : Stack(
+                  alignment: Alignment.center,
+                  fit: StackFit.expand,
+                  children: [
+                    CircularPercentIndicator(
+                      percent: appState.data.percent,
+                      radius: 256,
+                      lineWidth: 16,
+                      animation: true,
+                      animationDuration: 300,
+                      animateFromLastPercent: true,
+                      center: Text('${appState.data.usage} of ${appState.data.limit}'),
+                    ),
+                    CircularPercentIndicator(
+                      percent: appState.data.datePercent,
+                      radius: 220,
+                      lineWidth: 14,
+                    ),
+                  ],
+                );
         },
       ),
     );

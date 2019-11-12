@@ -8,12 +8,18 @@ import 'package:dataly/data/data_usage.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+enum UpdateStatus {
+  WAITING,
+  CANCELLED,
+  CANCELLED_BY_USER,
+}
+
 Future<SharedPreferences> getPrefs() => SharedPreferences.getInstance();
 
 class AppState with ChangeNotifier {
   DataUsage _data;
   Carrier _carrier;
-  Completer updating;
+  Completer<UpdateStatus> _updating;
 
   AppState({DataUsage data, Carrier carrier})
       : this._data = data,
@@ -43,5 +49,11 @@ class AppState with ChangeNotifier {
     getPrefs().then((prefs) {
       return prefs.setString('carrier', this._carrier.name);
     });
+  }
+
+  Completer<UpdateStatus> get updating => this._updating;
+  set updating(Completer<UpdateStatus> completer) {
+    this._updating = completer;
+    notifyListeners();
   }
 }
