@@ -13,8 +13,8 @@ import 'package:sms_maintained/sms.dart';
 AppState appState;
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  await prefs.clear();
 
   appState = AppState.fromPrefs(prefs);
 
