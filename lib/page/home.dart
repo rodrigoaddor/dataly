@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:dataly/widget/loading_sheet.dart';
 import 'package:dataly/data/app_state.dart';
 import 'package:dataly/widget/app_drawer.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
@@ -74,6 +75,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final appState = Provider.of<AppState>(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -112,7 +114,32 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
       body: Builder(
         builder: (context) {
           return !appState.hasDataUsage
-              ? Text('No data found')
+              ? Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(width: double.infinity),
+                    Text(
+                      'No data found',
+                      style: theme.textTheme.display1,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Icon(
+                        FontAwesomeIcons.timesCircle,
+                        size: 140,
+                        color: (theme.brightness == Brightness.light ? Colors.black : Colors.white).withOpacity(0.2),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(64, 8, 64, 0),
+                      child: Text(
+                        'Select your carrier in the left drawer and then press the refresh button below.',
+                        textAlign: TextAlign.center,
+                      ),
+                    )
+                  ],
+                )
               : Stack(
                   alignment: Alignment.center,
                   fit: StackFit.expand,

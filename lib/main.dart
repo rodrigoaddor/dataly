@@ -14,6 +14,7 @@ AppState appState;
 
 void main() async {
   final prefs = await SharedPreferences.getInstance();
+  await prefs.clear();
 
   appState = AppState.fromPrefs(prefs);
 
@@ -45,10 +46,14 @@ void main() async {
 class DatalyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final appState = Provider.of<AppState>(context);
+
     return MaterialApp(
       title: 'Dataly',
       home: HomePage(),
+      themeMode: appState.theme,
       theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
     );
   }
 }
