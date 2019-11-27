@@ -44,6 +44,39 @@ class AppState with ChangeNotifier {
     );
   }
 
+  factory AppState.fromJSON(Map<String, dynamic> json) {
+    return AppState(
+      data: json.containsKey('data') ? DataUsage.fromJSON(jsonDecode(json['data'])) : null,
+      carrier: json.containsKey('carrier') ? Carriers.firstWhere((carrier) => carrier.name == json['carrier']) : null,
+      theme: json.containsKey('theme') ? ThemeMode.values[json['theme']] : ThemeMode.light,
+      history: json.containsKey('history')
+          ? json['history'].map((entry) => DataHistory.fromJSON(jsonDecode(entry))).toList<DataHistory>()
+          : [],
+    );
+  }
+
+  Map<String, dynamic> toJSON() {
+    return {
+      'data': this._data.toJSON(),
+      'carrier': this._carrier.name,
+      'theme': this._theme.index,
+      'history': this._history.map((entry) => jsonEncode(entry.toJSON())).toList(growable: false)
+    };
+  }
+
+  void updateFromJSON(Map<String, dynamic> json) {
+    if (json.containsKey('data')) this.data = DataUsage.fromJSON(json['data']);
+    if (json.containsKey('carrier')) this.carrier = Carriers.firstWhere((carrier) => carrier.name == json['carrier']);
+    if (json.containsKey('theme')) this.theme = ThemeMode.values[json['theme']];
+    if (json.containsKey('history')) {
+      this._history = json['history'].map<DataHistory>((entry) => DataHistory.fromJSON(jsonDecode(entry))).toList();
+      saveHistory();
+    }
+    print('Updated with JSON: $json');
+
+    notifyListeners();
+  }
+
   bool get hasDataUsage => this._data != null;
   DataUsage get data => this._data;
   set data(DataUsage newData) {
@@ -69,7 +102,6 @@ class AppState with ChangeNotifier {
   ThemeMode get theme => this._theme;
   set theme(ThemeMode newTheme) {
     this._theme = newTheme;
-    print(this._theme);
     notifyListeners();
     getPrefs().then((prefs) => prefs.setInt('theme', this._theme.index));
   }
@@ -86,14 +118,14 @@ class AppState with ChangeNotifier {
   void addToHistory(DataUsage usage, [DateTime date, int index]) {
     this._history.insert(index ?? this._history.length, DataHistory(data: usage, date: date));
     notifyListeners();
-    //saveHistory();
+    saveHistory();
   }
 
   void removeFromHistory(int index) {
     if (this._history.length >= index + 1) {
       this._history.removeAt(index);
       notifyListeners();
-      //saveHistory();
+      saveHistory();
     }
   }
 }

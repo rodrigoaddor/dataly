@@ -8,11 +8,25 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.14.11"
+  file_picker:
+    dependency: "direct main"
+    description:
+      name: file_picker
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.4.3+1"
   flutter:
     dependency: "direct main"
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_share:
+    dependency: "direct main"
+    description:
+      name: flutter_share
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.2+1"
   font_awesome_flutter:
     dependency: "direct main"
     description:
@@ -41,6 +55,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.6.4"
+  path_provider:
+    dependency: "direct main"
+    description:
+      name: path_provider
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.4.5"
   percent_indicator:
     dependency: "direct main"
     description:
@@ -48,20 +69,27 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.1+1"
+  platform:
+    dependency: transitive
+    description:
+      name: platform
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.2.1"
   provider:
     dependency: "direct main"
     description:
       name: provider
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.0+1"
+    version: "3.2.0"
   shared_preferences:
     dependency: "direct main"
     description:
       name: shared_preferences
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.4+1"
+    version: "0.5.4+6"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -90,4 +118,4 @@ packages:
     version: "2.0.8"
 sdks:
   dart: ">=2.2.2 <3.0.0"
-  flutter: ">=1.6.7 <2.0.0"
+  flutter: ">=1.9.1+hotfix.5 <2.0.0"

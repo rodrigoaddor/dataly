@@ -9,13 +9,15 @@ dependencies:
   flutter:
     sdk: flutter
 
-  provider: ^3.1.0+1
-  shared_preferences: ^0.5.4+1
+  provider: ^3.2.0
+  shared_preferences: ^0.5.4+6
   intl: ^0.16.0
-
   font_awesome_flutter: ^8.5.0
   percent_indicator: ^2.1.1+1
   sms_maintained: ^0.2.5
+  flutter_share: ^1.0.2+1
+  file_picker: ^1.4.3+1
+  path_provider: ^1.4.5
 
 flutter:
   uses-material-design: true

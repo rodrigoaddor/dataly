@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:dataly/data/app_state.dart';
@@ -5,7 +8,10 @@ import 'package:dataly/page/history.dart';
 import 'package:dataly/widget/carrier_dialog.dart';
 import 'package:dataly/widget/boxed_text.dart';
 
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_share/flutter_share.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -85,9 +91,9 @@ class _AppDrawerState extends State<AppDrawer> {
           ),
           Divider(),
           SizedBox(
-            height: 28,
+            height: 32,
             child: Padding(
-                padding: EdgeInsets.only(left: 16),
+                padding: EdgeInsets.only(left: 16, bottom: 8),
                 child: Align(
                   alignment: Alignment.bottomLeft,
                   child: Text(
@@ -103,6 +109,29 @@ class _AppDrawerState extends State<AppDrawer> {
             value: appState.theme == ThemeMode.dark,
             onChanged: (dark) => appState.theme = dark ? ThemeMode.dark : ThemeMode.light,
           ),
+          Divider(),
+          ListTile(
+            title: const Text('Export Data'),
+            leading: Icon(FontAwesomeIcons.fileExport),
+            onTap: () async {
+              final path = '${(await getTemporaryDirectory()).path}/dataly.json';
+              final file = File(path);
+              file.writeAsString(jsonEncode(appState.toJSON()));
+              FlutterShare.shareFile(
+                title: 'Dataly Export',
+                filePath: path,
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Import Data'),
+            leading: Icon(FontAwesomeIcons.fileImport),
+            onTap: () async {
+              final file = File(await FilePicker.getFilePath(type: FileType.ANY, fileExtension: 'json'));
+              final data = jsonDecode(await file.readAsString());
+              appState.updateFromJSON(data);
+            },
+          )
         ],
       ),
     );
