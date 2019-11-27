@@ -83,27 +83,17 @@ class AppState with ChangeNotifier {
   }
 
   UnmodifiableListView<DataHistory> get history => UnmodifiableListView(this._history);
-  bool addToHistory(DataUsage usage, [DateTime date]) {
-    if (this._history.length == 0 || this._history.last.data.usage.bytes != usage.usage.bytes) {
-      this._history.add(DataHistory(data: usage, date: date));
-      if (date != null && this._history.last.date.millisecondsSinceEpoch < date.millisecondsSinceEpoch) {
-        this._history.sort((a, b) => a.date.millisecondsSinceEpoch.compareTo(b.date.millisecondsSinceEpoch));
-      }
-      notifyListeners();
-      saveHistory();
-      return true;
-    } else {
-      return false;
-    }
+  void addToHistory(DataUsage usage, [DateTime date, int index]) {
+    this._history.insert(index ?? this._history.length, DataHistory(data: usage, date: date));
+    notifyListeners();
+    //saveHistory();
   }
 
-  bool removeFromHistory(int index) {
+  void removeFromHistory(int index) {
     if (this._history.length >= index + 1) {
       this._history.removeAt(index);
-      saveHistory();
-      return true;
-    } else {
-      return false;
+      notifyListeners();
+      //saveHistory();
     }
   }
 }

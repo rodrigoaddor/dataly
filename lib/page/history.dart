@@ -1,8 +1,6 @@
-import 'package:dataly/data/data_usage.dart';
 import 'package:flutter/material.dart';
 
 import 'package:dataly/data/app_state.dart';
-import 'package:dataly/data/history.dart';
 
 import 'package:intl/intl.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -15,31 +13,24 @@ class HistoryPage extends StatefulWidget {
 
 class _HistoryPageState extends State<HistoryPage> {
   final dateFormat = DateFormat('MMM dd, yyyy');
-  List<DataHistory> history = [
-    DataHistory(data: DataUsage.fromJSON({"usage": 639000000, "limit": 6000000000, "reset": 1577156400000}))
-  ];
 
   void removeItem(BuildContext context, int index) {
     final appState = Provider.of<AppState>(context);
-    final entry = history[index];
-    setState(() {
-      appState.removeFromHistory(index);
-      AnimatedList.of(context).removeItem(
-        index,
-        (context, animation) => buildItem(context, index, animation),
-        duration: Duration.zero,
-      );
-    });
+    final entry = appState.history[index];
+    AnimatedList.of(context).removeItem(
+      index,
+      (context, animation) => buildItem(context, index, animation),
+      duration: Duration.zero,
+    );
+    appState.removeFromHistory(index);
 
     Scaffold.of(context).showSnackBar(SnackBar(
       content: Text('Entry deleted'),
       action: SnackBarAction(
         label: 'Undo',
         onPressed: () {
-          setState(() {
-            appState.addToHistory(entry.data, entry.date);
-            AnimatedList.of(context).insertItem(index);
-          });
+          appState.addToHistory(entry.data, entry.date, index);
+          AnimatedList.of(context).insertItem(index);
         },
       ),
     ));

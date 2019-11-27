@@ -96,6 +96,7 @@ class HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
               child: hasFloatingButton
                   ? FloatingActionButton(
+                      heroTag: null,
                       child: RotationTransition(
                         turns: rotation,
                         child: Icon(
