@@ -23,12 +23,10 @@ class LoadingSheet extends StatelessWidget {
         title: this.title ?? const Text('Loading'),
         trailing: SizedBox(
           width: 64,
-          child: ButtonTheme.bar(
-            child: FlatButton(
-              padding: EdgeInsets.zero,
-              child: const Text('Hide'),
-              onPressed: this.onHide,
-            ),
+          child: FlatButton(
+            padding: EdgeInsets.zero,
+            child: const Text('Hide'),
+            onPressed: this.onHide,
           ),
         ),
       ),

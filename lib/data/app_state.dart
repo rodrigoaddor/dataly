@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import 'package:dataly/data/history.dart';
 import 'package:dataly/data/carrier.dart';
 import 'package:dataly/data/data_usage.dart';
 
@@ -21,11 +23,13 @@ class AppState with ChangeNotifier {
   Carrier _carrier;
   Completer<UpdateStatus> _updating;
   ThemeMode _theme;
+  List<DataHistory> _history;
 
-  AppState({DataUsage data, Carrier carrier, ThemeMode theme})
+  AppState({DataUsage data, Carrier carrier, ThemeMode theme, List<DataHistory> history})
       : this._data = data,
         this._carrier = carrier,
-        this._theme = theme;
+        this._theme = theme,
+        this._history = history;
 
   factory AppState.fromPrefs(SharedPreferences prefs) {
     return AppState(
@@ -34,6 +38,9 @@ class AppState with ChangeNotifier {
           ? Carriers.firstWhere((carrier) => carrier.name == prefs.getString('carrier'))
           : null,
       theme: prefs.containsKey('theme') ? ThemeMode.values[prefs.getInt('theme')] : ThemeMode.light,
+      history: prefs.containsKey('history')
+          ? prefs.getStringList('history').map((entry) => DataHistory.fromJSON(jsonDecode(entry))).toList()
+          : [],
     );
   }
 
@@ -42,6 +49,7 @@ class AppState with ChangeNotifier {
   set data(DataUsage newData) {
     this._data = newData;
     notifyListeners();
+    addToHistory(this._data);
     getPrefs().then((prefs) => prefs.setString('data', jsonEncode(this._data.toJSON())));
   }
 
@@ -64,5 +72,38 @@ class AppState with ChangeNotifier {
     print(this._theme);
     notifyListeners();
     getPrefs().then((prefs) => prefs.setInt('theme', this._theme.index));
+  }
+
+  void saveHistory() async {
+    final prefs = await getPrefs();
+    prefs.setStringList(
+      'history',
+      this._history.map((entry) => jsonEncode(entry.toJSON())).toList(growable: false),
+    );
+  }
+
+  UnmodifiableListView<DataHistory> get history => UnmodifiableListView(this._history);
+  bool addToHistory(DataUsage usage, [DateTime date]) {
+    if (this._history.length == 0 || this._history.last.data.usage.bytes != usage.usage.bytes) {
+      this._history.add(DataHistory(data: usage, date: date));
+      if (date != null && this._history.last.date.millisecondsSinceEpoch < date.millisecondsSinceEpoch) {
+        this._history.sort((a, b) => a.date.millisecondsSinceEpoch.compareTo(b.date.millisecondsSinceEpoch));
+      }
+      notifyListeners();
+      saveHistory();
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  bool removeFromHistory(int index) {
+    if (this._history.length >= index + 1) {
+      this._history.removeAt(index);
+      saveHistory();
+      return true;
+    } else {
+      return false;
+    }
   }
 }

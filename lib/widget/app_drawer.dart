@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:dataly/data/app_state.dart';
+import 'package:dataly/page/history.dart';
 import 'package:dataly/widget/carrier_dialog.dart';
 import 'package:dataly/widget/boxed_text.dart';
 
@@ -49,7 +50,7 @@ class _AppDrawerState extends State<AppDrawer> {
                       ],
                     )
                   : Padding(
-                    padding: EdgeInsets.only(bottom: 12),
+                      padding: EdgeInsets.only(bottom: 12),
                       child: Text(
                         'No data usage info',
                       ),
@@ -77,6 +78,10 @@ class _AppDrawerState extends State<AppDrawer> {
           ListTile(
             title: const Text('Usage History'),
             leading: Icon(FontAwesomeIcons.history),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => HistoryPage()),
+            ),
           ),
           Divider(),
           SizedBox(
